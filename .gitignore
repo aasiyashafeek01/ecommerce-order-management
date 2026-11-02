@@ -1,0 +1,30 @@
+@"
+# Dependencies
+frontend/node_modules/
+
+# Angular build output
+frontend/dist/
+frontend/.angular/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+
+# Credentials and private keys
+credentials*.json
+*service-account*.json
+*.pem
+*.key
+
+# Go build output
+backend/*.exe
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+"@ | Set-Content .gitignore

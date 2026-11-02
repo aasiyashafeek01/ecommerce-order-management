@@ -1,0 +1,145 @@
+
+<div class="customers-page">
+
+  <div class="page-header">
+    <div>
+      <h1>Customers</h1>
+      <p>Manage your customer information.</p>
+    </div>
+
+    <button class="primary-btn" (click)="openAddForm()">
+      + Add Customer
+    </button>
+  </div>
+
+  @if (success) {
+    <div class="alert success">{{ success }}</div>
+  }
+
+  @if (error) {
+    <div class="alert error">{{ error }}</div>
+  }
+
+  @if (showForm) {
+    <div class="form-card">
+      <h2>{{ editingId ? 'Edit Customer' : 'Add New Customer' }}</h2>
+
+      <form #customerForm="ngForm" (ngSubmit)="saveCustomer()">
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="name">Customer Name</label>
+            <input
+              id="name"
+              type="text"
+              name="name"
+              [(ngModel)]="form.name"
+              placeholder="Enter customer name"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              [(ngModel)]="form.email"
+              placeholder="Enter email address"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input
+              id="phone"
+              type="tel"
+              name="phone"
+              [(ngModel)]="form.phone"
+              placeholder="Enter phone number (optional)"
+            />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="primary-btn"
+            [disabled]="customerForm.invalid || saving"
+          >
+            {{ saving ? 'Saving...' : (editingId ? 'Update Customer' : 'Add Customer') }}
+          </button>
+
+          <button
+            type="button"
+            class="secondary-btn"
+            (click)="closeForm()"
+          >
+            Cancel
+          </button>
+        </div>
+
+      </form>
+    </div>
+  }
+
+  <div class="table-card">
+
+    <div class="table-header">
+      <h2>Customer List</h2>
+      <span>{{ customers.length }} customers</span>
+    </div>
+
+    @if (loading) {
+      <p class="loading">Loading customers...</p>
+    } @else if (customers.length === 0) {
+      <p class="empty-state">No customers found. Add your first customer.</p>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (customer of customers; track customer.id) {
+              <tr>
+                <td>#{{ customer.id }}</td>
+                <td>{{ customer.name }}</td>
+                <td>{{ customer.email }}</td>
+                <td>{{ customer.phone || '—' }}</td>
+                <td>
+                  <div class="actions">
+                    <button
+                      class="edit-btn"
+                      (click)="openEditForm(customer)"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      class="delete-btn"
+                      (click)="deleteCustomer(customer)"
+                      [disabled]="deletingId === customer.id"
+                    >
+                      {{ deletingId === customer.id ? 'Deleting...' : 'Delete' }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+  </div>
+</div>

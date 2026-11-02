@@ -1,0 +1,330 @@
+
+<div class="orders-page">
+
+  <div class="page-header">
+    <div>
+      <h1>Orders</h1>
+      <p>Create and manage customer orders and fulfilment.</p>
+    </div>
+
+    <button class="primary-btn" (click)="openCreateForm()">
+      + Create Order
+    </button>
+  </div>
+
+  @if (success) {
+    <div class="alert success">{{ success }}</div>
+  }
+
+  @if (error) {
+    <div class="alert error">{{ error }}</div>
+  }
+
+  @if (showForm) {
+    <div class="form-card">
+      <h2>Create New Order</h2>
+
+      <form #orderForm="ngForm" (ngSubmit)="createOrder()">
+
+        <div class="form-group customer-select">
+          <label for="customer">Select Customer</label>
+
+          <select
+            id="customer"
+            name="customer"
+            [(ngModel)]="customerId"
+            required
+          >
+            <option [ngValue]="null">Choose a customer</option>
+
+            @for (customer of customers; track customer.id) {
+              <option [ngValue]="customer.id">
+                {{ customer.name }} ({{ customer.email }})
+              </option>
+            }
+          </select>
+
+          @if (customers.length === 0) {
+            <small>No customers available. Add a customer first.</small>
+          }
+        </div>
+
+        <div class="section-heading">
+          <h3>Order Items</h3>
+
+          <button
+            type="button"
+            class="secondary-btn"
+            (click)="addLine()"
+          >
+            + Add Item
+          </button>
+        </div>
+
+        <div class="items-table-wrapper">
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Available Stock</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Subtotal</th>
+                <th></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (line of orderLines; track $index; let i = $index) {
+                <tr>
+                  <td>
+                    <select
+                      [name]="'product' + i"
+                      [(ngModel)]="line.product_id"
+                      required
+                    >
+                      <option [ngValue]="0">Select product</option>
+
+                      @for (product of products; track product.id) {
+                        <option [ngValue]="product.id">
+                          {{ product.name }}
+                        </option>
+                      }
+                    </select>
+                  </td>
+
+                  <td>
+                    {{ line.product_id ? getAvailableStock(line.product_id) : '—' }}
+                  </td>
+
+                  <td>
+                    <input
+                      type="number"
+                      [name]="'quantity' + i"
+                      [(ngModel)]="line.quantity"
+                      min="1"
+                      step="1"
+                      required
+                    />
+                  </td>
+
+                  <td>
+                    {{ line.product_id ? (getProductPrice(line.product_id) | currency:'INR') : '—' }}
+                  </td>
+
+                  <td>
+                    {{ getLineSubtotal(line) | currency:'INR' }}
+                  </td>
+
+                  <td>
+                    <button
+                      type="button"
+                      class="remove-btn"
+                      (click)="removeLine(i)"
+                      [disabled]="orderLines.length === 1"
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="order-total">
+          <span>Order Total</span>
+          <strong>{{ getOrderTotal() | currency:'INR' }}</strong>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="primary-btn"
+            [disabled]="orderForm.invalid || saving || customers.length === 0 || products.length === 0"
+          >
+            {{ saving ? 'Creating Order...' : 'Create Order' }}
+          </button>
+
+          <button
+            type="button"
+            class="secondary-btn"
+            (click)="closeCreateForm()"
+          >
+            Cancel
+          </button>
+        </div>
+
+      </form>
+    </div>
+  }
+
+  @if (selectedOrder) {
+    <div class="details-card">
+      <div class="details-header">
+        <div>
+          <h2>Order Details</h2>
+          <p>{{ selectedOrder.order_number }}</p>
+        </div>
+
+        <button
+          type="button"
+          class="secondary-btn"
+          (click)="closeOrderDetails()"
+        >
+          Close
+        </button>
+      </div>
+
+      <div class="details-grid">
+        <div>
+          <span>Customer</span>
+          <strong>{{ getCustomerName(selectedOrder.customer_id) }}</strong>
+        </div>
+
+        <div>
+          <span>Status</span>
+          <strong>
+            <span class="status-badge" [class]="getStatusClass(selectedOrder.status)">
+              {{ selectedOrder.status }}
+            </span>
+          </strong>
+        </div>
+
+        <div>
+          <span>Order Date</span>
+          <strong>{{ selectedOrder.created_at | date:'medium' }}</strong>
+        </div>
+
+        <div>
+          <span>Total Amount</span>
+          <strong>{{ selectedOrder.total_amount | currency:'INR' }}</strong>
+        </div>
+      </div>
+
+      <h3>Items</h3>
+
+      <div class="items-table-wrapper">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (item of selectedOrder.items ?? []; track item.id) {
+              <tr>
+                <td>{{ getProductName(item.product_id) }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.unit_price | currency:'INR' }}</td>
+                <td>{{ item.subtotal | currency:'INR' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (getNextStatuses(selectedOrder.status).length > 0) {
+        <div class="status-actions">
+          <h3>Update Order Status</h3>
+
+          @for (status of getNextStatuses(selectedOrder.status); track status) {
+            <button
+              type="button"
+              [class]="status === 'CANCELLED' ? 'cancel-status-btn' : 'primary-btn'"
+              (click)="changeStatus(selectedOrder, status)"
+            >
+              {{ status === 'CONFIRMED' ? 'Confirm Order' : status }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <div class="table-card">
+    <div class="table-header">
+        <h2>Order List</h2>
+        <span>{{ filteredOrders.length }} of {{ orders.length }} orders</span>
+        </div>
+
+        <div class="order-filters">
+        <input
+            type="text"
+            placeholder="Search by order number or customer..."
+            [(ngModel)]="searchTerm"
+        />
+
+        <select [(ngModel)]="statusFilter">
+            <option value="ALL">All Statuses</option>
+            <option value="PLACED">Placed</option>
+            <option value="CONFIRMED">Confirmed</option>
+            <option value="PACKED">Packed</option>
+            <option value="SHIPPED">Shipped</option>
+            <option value="DELIVERED">Delivered</option>
+            <option value="CANCELLED">Cancelled</option>
+        </select>
+
+        <button
+            type="button"
+            class="secondary-btn"
+            (click)="searchTerm = ''; statusFilter = 'ALL'"
+        >
+            Clear Filters
+        </button>
+        </div>
+
+    @if (loading) {
+      <p class="loading">Loading orders...</p>
+    } @else if (orders.length === 0) {
+    <p class="empty-state">No orders found. Create your first order.</p>
+    } @else if (filteredOrders.length === 0) {
+    <p class="empty-state">No orders match your search or selected status.</p>    
+    } @else {
+      <div class="items-table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Order Number</th>
+              <th>Customer</th>
+              <th>Date</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (order of filteredOrders; track order.id) {              
+                <tr>
+                <td>{{ order.order_number }}</td>
+                <td>{{ getCustomerName(order.customer_id) }}</td>
+                <td>{{ order.created_at | date:'mediumDate' }}</td>
+                <td>{{ order.total_amount | currency:'INR' }}</td>
+                <td>
+                  <span class="status-badge" [class]="getStatusClass(order.status)">
+                    {{ order.status }}
+                  </span>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="view-btn"
+                    (click)="viewOrder(order)"
+                  >
+                    View Details
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+</div>

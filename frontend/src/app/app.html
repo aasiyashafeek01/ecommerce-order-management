@@ -1,0 +1,42 @@
+
+<div class="app-layout">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon">E</span>
+      <span>Commerce Admin</span>
+    </div>
+
+    <nav class="navigation">
+      <a routerLink="/" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }">
+        Dashboard
+      </a>
+
+      <a routerLink="/products" routerLinkActive="active">
+        Products
+      </a>
+
+      <a routerLink="/customers" routerLinkActive="active">
+        Customers
+      </a>
+
+      <a routerLink="/orders" routerLinkActive="active">
+        Orders
+      </a>
+
+      <a routerLink="/inventory" routerLinkActive="active">
+        Inventory
+      </a>
+    </nav>
+  </header>
+
+  <main class="main-content">
+    <router-outlet />
+  </main>
+
+  <footer class="footer">
+    E-Commerce Order Management & Fulfillment Platform
+  </footer>
+
+</div>

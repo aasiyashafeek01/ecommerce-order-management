@@ -1,0 +1,68 @@
+
+<div class="dashboard-container">
+
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">OVERVIEW</p>
+      <h1>Dashboard</h1>
+      <p class="subtitle">Welcome to your order management system.</p>
+    </div>
+  </header>
+
+  @if (loading) {
+    <p class="message">Loading dashboard...</p>
+  }
+
+  @if (error) {
+    <p class="error">{{ error }}</p>
+  }
+
+  @if (dashboard; as data) {
+    <section class="stats-grid">
+
+      <article class="stat-card">
+        <span>Total Orders</span>
+        <h2>{{ data.total_orders }}</h2>
+        <p>All orders</p>
+      </article>
+
+      <article class="stat-card">
+        <span>Order Value</span>
+        <h2>{{ data.total_order_value | currency:'INR':'symbol':'1.2-2' }}</h2>
+        <p>Excluding cancelled orders</p>
+      </article>
+
+      <article class="stat-card">
+        <span>Pending Orders</span>
+        <h2>{{ data.pending_orders }}</h2>
+        <p>Awaiting fulfilment</p>
+      </article>
+
+      <article class="stat-card">
+        <span>Total Products</span>
+        <h2>{{ data.total_products }}</h2>
+        <p>Products in catalogue</p>
+      </article>
+
+      <article class="stat-card">
+        <span>Total Customers</span>
+        <h2>{{ data.total_customers }}</h2>
+        <p>Registered customers</p>
+      </article>
+
+      <article class="stat-card">
+        <span>Low Stock Products</span>
+        <h2>{{ data.low_stock_products }}</h2>
+        <p>Products with 5 or fewer units</p>
+      </article>
+
+      <article class="stat-card">
+        <span>Inventory Value</span>
+        <h2>{{ data.inventory_value | currency:'INR':'symbol':'1.2-2' }}</h2>
+        <p>Current stock value</p>
+      </article>
+
+    </section>
+  }
+
+</div>

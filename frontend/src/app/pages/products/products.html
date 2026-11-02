@@ -1,0 +1,152 @@
+<div class="products-container">
+
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">INVENTORY MANAGEMENT</p>
+      <h1>Products</h1>
+      <p class="subtitle">Manage your product catalogue and stock.</p>
+    </div>
+
+    <button class="primary-btn" (click)="openAddForm()">
+      + Add Product
+    </button>
+  </header>
+
+  @if (success) {
+    <div class="success-message">{{ success }}</div>
+  }
+
+  @if (error && !showForm) {
+    <div class="error-message">{{ error }}</div>
+  }
+
+  @if (showForm) {
+    <section class="form-card">
+      <h2>{{ editingId === null ? 'Add New Product' : 'Edit Product' }}</h2>
+
+      @if (error) {
+        <div class="error-message">{{ error }}</div>
+      }
+
+      <form (ngSubmit)="saveProduct()" #productForm="ngForm">
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Product Name</label>
+            <input
+              type="text"
+              name="name"
+              [(ngModel)]="form.name"
+              required
+              placeholder="Enter product name">
+          </div>
+
+          <div class="form-group">
+            <label>SKU</label>
+            <input
+              type="text"
+              name="sku"
+              [(ngModel)]="form.sku"
+              required
+              placeholder="Enter SKU">
+          </div>
+
+          <div class="form-group">
+            <label>Price (₹)</label>
+            <input
+              type="number"
+              name="price"
+              [(ngModel)]="form.price"
+              min="0.01"
+              step="0.01"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label>Stock Quantity</label>
+            <input
+              type="number"
+              name="stock_quantity"
+              [(ngModel)]="form.stock_quantity"
+              min="0"
+              step="1"
+              required>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="secondary-btn" (click)="closeForm()">
+            Cancel
+          </button>
+
+          <button type="submit" class="primary-btn" [disabled]="productForm.invalid || saving">
+            {{ saving ? 'Saving...' : (editingId === null ? 'Add Product' : 'Save Changes') }}
+          </button>
+        </div>
+
+      </form>
+    </section>
+  }
+
+  <section class="table-card">
+    <div class="table-header">
+      <div>
+        <h2>Product Catalogue</h2>
+        <p>{{ products.length }} products registered</p>
+      </div>
+    </div>
+
+    @if (loading) {
+      <p class="message">Loading products...</p>
+    } @else if (products.length === 0) {
+      <p class="message">No products found. Add your first product.</p>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>SKU</th>
+              <th>Price</th>
+              <th>Available Stock</th>
+              <th>Stock Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (product of products; track product.id) {
+              <tr>
+                <td class="product-name">{{ product.name }}</td>
+                <td>{{ product.sku }}</td>
+                <td>{{ product.price | currency:'INR':'symbol':'1.2-2' }}</td>
+                <td>{{ product.stock_quantity }}</td>
+                <td>
+                  @if (product.stock_quantity === 0) {
+                    <span class="stock-badge out">Out of Stock</span>
+                  } @else if (product.stock_quantity <= 5) {
+                    <span class="stock-badge low">Low Stock</span>
+                  } @else {
+                    <span class="stock-badge available">In Stock</span>
+                  }
+                </td>
+                <td class="actions">
+                  <button class="edit-btn" (click)="openEditForm(product)">
+                    Edit
+                  </button>
+                  <button
+                    class="delete-btn"
+                    [disabled]="deletingId === product.id"
+                    (click)="deleteProduct(product)">
+                    {{ deletingId === product.id ? 'Deleting...' : 'Delete' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+</div>

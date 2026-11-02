@@ -1,0 +1,163 @@
+
+<div class="inventory-page">
+
+  <div class="page-header">
+    <div>
+      <h1>Inventory Management</h1>
+      <p>Monitor stock levels and manage product inventory.</p>
+    </div>
+
+    <button class="secondary-btn" (click)="loadInventory()">
+      Refresh Inventory
+    </button>
+  </div>
+
+  @if (success) {
+    <div class="alert success">{{ success }}</div>
+  }
+
+  @if (error) {
+    <div class="alert error">{{ error }}</div>
+  }
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <span>Total Products</span>
+      <strong>{{ totalProducts }}</strong>
+    </div>
+
+    <div class="summary-card">
+      <span>Total Stock Units</span>
+      <strong>{{ totalUnits }}</strong>
+    </div>
+
+    <div class="summary-card warning-card">
+      <span>Low Stock Products</span>
+      <strong>{{ lowStockProducts.length }}</strong>
+    </div>
+
+    <div class="summary-card danger-card">
+      <span>Out of Stock</span>
+      <strong>{{ outOfStockProducts.length }}</strong>
+    </div>
+
+    <div class="summary-card">
+      <span>Inventory Value</span>
+      <strong>{{ inventoryValue | currency:'INR' }}</strong>
+    </div>
+  </div>
+
+  @if (showForm && selectedProduct) {
+    <div class="form-card">
+      <h2>Update Stock</h2>
+
+      <p>
+        Product: <strong>{{ selectedProduct.name }}</strong>
+      </p>
+
+      <p>
+        Current Stock: <strong>{{ selectedProduct.stock_quantity }}</strong>
+      </p>
+
+      <form (ngSubmit)="updateStock()">
+        <div class="form-group">
+          <label for="stock">New Stock Quantity</label>
+
+          <input
+            id="stock"
+            type="number"
+            name="stock"
+            [(ngModel)]="newStock"
+            min="0"
+            step="1"
+            required
+          />
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="primary-btn"
+            [disabled]="saving"
+          >
+            {{ saving ? 'Updating...' : 'Update Stock' }}
+          </button>
+
+          <button
+            type="button"
+            class="secondary-btn"
+            (click)="closeStockForm()"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="table-card">
+    <div class="table-header">
+      <h2>Inventory Overview</h2>
+      <span>{{ products.length }} products</span>
+    </div>
+
+    @if (loading) {
+      <p class="empty-state">Loading inventory...</p>
+    } @else if (products.length === 0) {
+      <p class="empty-state">No products available.</p>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>SKU</th>
+              <th>Unit Price</th>
+              <th>Available Stock</th>
+              <th>Stock Value</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (product of products; track product.id) {
+              <tr>
+                <td>{{ product.name }}</td>
+                <td>{{ product.sku }}</td>
+                <td>{{ product.price | currency:'INR' }}</td>
+                <td>{{ product.stock_quantity }}</td>
+                <td>
+                  {{ product.price * product.stock_quantity | currency:'INR' }}
+                </td>
+                <td>
+                  <span
+                    class="stock-badge"
+                    [class]="getStockClass(product.stock_quantity)"
+                  >
+                    {{
+                      product.stock_quantity === 0
+                        ? 'Out of Stock'
+                        : product.stock_quantity <= 5
+                          ? 'Low Stock'
+                          : 'In Stock'
+                    }}
+                  </span>
+                </td>
+                <td>
+                  <button
+                    class="edit-btn"
+                    (click)="openStockForm(product)"
+                  >
+                    Update Stock
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+</div>
